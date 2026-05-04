@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Orders</title>
+    <style>
+        :root {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+            color: #1a1a1a;
+            background: #f4f6f8;
+        }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            padding: 1.75rem;
+            max-width: 520px;
+            width: 100%;
+        }
+        h1 {
+            margin: 0 0 1.25rem;
+            font-size: 1.35rem;
+            font-weight: 600;
+        }
+        .row {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 1.25rem;
+        }
+        input[type="text"] {
+            flex: 1;
+            min-width: 160px;
+            padding: 0.6rem 0.75rem;
+            border: 1px solid #d0d7de;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        button {
+            padding: 0.6rem 1rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            background: #2563eb;
+            color: #fff;
+        }
+        button:hover {
+            background: #1d4ed8;
+        }
+        button.secondary {
+            background: #0f766e;
+        }
+        button.secondary:hover {
+            background: #0d9488;
+        }
+        #message {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-bottom: 0.75rem;
+            min-height: 1.25em;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        li {
+            padding: 0.65rem 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            background: #f8fafc;
+            font-size: 0.95rem;
+        }
+        .muted {
+            color: #64748b;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Restaurant orders</h1>
+
+        <div class="row">
+            <button type="button" class="secondary" id="loadBtn">Load Orders</button>
+        </div>
+
+        <div id="message"></div>
+        <ul id="orderList"></ul>
+
+        <h2 class="muted" style="margin: 1.5rem 0 0.75rem; font-size: 1rem; font-weight: 600;">New order</h2>
+        <form id="orderForm" class="row">
+            <input type="text" id="mealName" name="mealName" placeholder="Meal name" required autocomplete="off">
+            <button type="submit">Order</button>
+        </form>
+    </div>
+
+    <script>
+        const API = '/api/orders';
+        const orderList = document.getElementById('orderList');
+        const message = document.getElementById('message');
+
+        function setMessage(text, isError) {
+            message.textContent = text;
+            message.style.color = isError ? '#b91c1c' : '#64748b';
+        }
+
+        document.getElementById('loadBtn').addEventListener('click', async () => {
+            setMessage('Loading…');
+            orderList.innerHTML = '';
+            try {
+                const res = await fetch(API);
+                if (!res.ok) throw new Error('Request failed');
+                const orders = await res.json();
+                if (!orders.length) {
+                    setMessage('No orders yet.');
+                    return;
+                }
+                setMessage('');
+                orders.forEach((o) => {
+                    const li = document.createElement('li');
+                    li.textContent = `${o.mealName ?? '(no name)'} — ${o.status ?? ''} (id: ${o.id ?? '—'})`;
+                    orderList.appendChild(li);
+                });
+            } catch (e) {
+                setMessage('Could not load orders. Is the API running?', true);
+            }
+        });
+
+        document.getElementById('orderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const mealName = document.getElementById('mealName').value.trim();
+            if (!mealName) return;
+            setMessage('Placing order…');
+            try {
+                const res = await fetch(API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mealName })
+                });
+                if (!res.ok) throw new Error('Request failed');
+                await res.json();
+                document.getElementById('mealName').value = '';
+                setMessage('Order placed. Click Load Orders to refresh the list.');
+            } catch (err) {
+                setMessage('Could not place order.', true);
+            }
+        });
+    </script>
+</body>
+</html>
