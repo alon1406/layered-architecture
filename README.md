@@ -1,6 +1,15 @@
 # Restaurant API
 
-Spring Boot layered example: entity, repository, service, controller, and a small static UI.
+Spring Boot **layered architecture** example (mirroring a `UserCtrl` / `UserService` / `UserRepository` style layout):
+
+| Layer | Class | Responsibility |
+|--------|--------|----------------|
+| Presentation | `OrderController` | HTTP: `ResponseEntity` for all responses |
+| Business | `OrderService` | Rules, transactions on write paths |
+| Data access | `OrderRepository` | JPA persistence |
+| Domain / persistence model | `RestaurantOrder` | `@Entity` mapped to the database |
+
+Also includes a small static UI under `src/main/resources/static/`.
 
 ## Prerequisites
 
@@ -66,5 +75,7 @@ Then open:
 
 ## API overview
 
-- `GET /api/orders` — list all orders
-- `POST /api/orders` — create an order (JSON body with `mealName`; status is set in the service layer)
+Implemented in `OrderController` (`/api/orders`):
+
+- `GET /api/orders` — list all orders (`ResponseEntity.ok(...)`)
+- `POST /api/orders` — create an order (JSON body with `mealName`; status is set in `OrderService`; response `201` with body)
