@@ -1,10 +1,12 @@
 package com.example.restaurant.controller;
 
+import org.springframework.web.bind.annotation.RequestMapping;
+
 import com.example.restaurant.service.OrderService;
 
 // TODO 1: Add the correct annotations to make this class a REST Controller.
 
-
+@RequestMapping("/api/orders") 
 public class OrderController {
 
     // TODO 2: Inject the OrderService into this controller.
